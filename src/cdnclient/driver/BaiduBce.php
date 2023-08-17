@@ -130,6 +130,8 @@ class BaiduBce extends Platform
                 $uaList = array_unique($uaList);
                 $this->handler->setDomainUaAcl($domain, 'black', $uaList);
             }
+            // 返回成功
+            return ['操作成功', null];
         }
         // 返回错误
         return [null, new \Exception($createResult->message)];
