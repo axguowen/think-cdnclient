@@ -1,0 +1,34 @@
+{
+    "name": "axguowen/think-cdnclient",
+    "description": "Simple CDN Client For ThinkPHP",
+    "keywords": [
+        "thinkphp",
+        "cdn",
+        "client"
+    ],      
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "axguowen",
+            "email": "axguowen@qq.com"
+        }
+    ],
+    "require": {
+        "topthink/framework": "^6.1",
+        "axguowen/baidubce-cdn": "^1.0",
+        "axguowen/ctyun-cdn": "^1.0",
+        "tencentcloud/cdn": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "think\\": "src"
+        }
+    },
+    "extra": {
+        "think": {
+            "config": {
+                "cdnclient": "src/config.php"
+            }
+        }
+    }
+}
