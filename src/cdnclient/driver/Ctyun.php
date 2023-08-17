@@ -200,9 +200,10 @@ class Ctyun extends Platform
 	 * 设置缓存规则
 	 * @access public
 	 * @param string $domain
+	 * @param array $cacheRules
 	 * @return array
 	 */
-	public function setCacheRules(string $domain)
+	public function setCacheRules(string $domain, array $cacheRules)
     {
         // 返回错误
         return [null, new \Exception('暂不支持该功能')];
