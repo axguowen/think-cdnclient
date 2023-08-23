@@ -83,13 +83,13 @@ class BaiduBce extends Platform
         ];
         $body['form'] = 'image';
         try{
-            $createResult = $this->handler->createDomain($domain, $body);
+            $response = $this->handler->createDomain($domain, $body);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 操作成功
-        if($createResult->statuscode == 201){
+        if($response->statuscode == 201){
             // 设置回源协议跟随
             $this->handler->setDomainFollowProtocol([
                 'value' => '*'
@@ -135,7 +135,7 @@ class BaiduBce extends Platform
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($createResult->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -148,18 +148,18 @@ class BaiduBce extends Platform
     {
         // 获取验证归属权信息
         try{
-            $getRecordResponse = $this->handler->howToVerify($domain);
+            $response = $this->handler->howToVerify($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码不为200
-        if($getRecordResponse->statuscode != 200){
+        if($response->statuscode != 200){
             // 返回错误
-            return [null, new \Exception($getRecordResponse->message)];
+            return [null, new \Exception($response->message)];
         }
         // 获取验证方法列表
-        $howToVerifys = $getRecordResponse->howToVerify;
+        $howToVerifys = $response->howToVerify;
         // 使用的验证方法
         $howToVerify = null;
         // 遍历所有的解析
@@ -230,23 +230,23 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $verifyRecordResponse = $this->handler->validDomain($domain);
+            $response = $this->handler->validDomain($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码不为200
-        if($verifyRecordResponse->statuscode != 200){
+        if($response->statuscode != 200){
             // 返回错误
-            return [null, new \Exception($verifyRecordResponse->message)];
+            return [null, new \Exception($response->message)];
         }
         // 如果验证失败
-        if(true === $verifyRecordResponse->isValid){
+        if(true === $response->isValid){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($verifyRecordResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -259,18 +259,18 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $deleteDomainResponse = $this->handler->deleteDomain($domain);
+            $response = $this->handler->deleteDomain($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200或者错误信息为域名不存在
-        if($deleteDomainResponse->statuscode == 200 || $deleteDomainResponse->code == 'NoSuchDomain'){
+        if($response->statuscode == 200 || $response->code == 'NoSuchDomain'){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($deleteDomainResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -286,18 +286,18 @@ class BaiduBce extends Platform
         $ipList = array_unique($ipList);
         // 获取响应
         try{
-            $setDomainIpAclResponse = $this->handler->setDomainIpAcl($domain, 'black', $ipList);
+            $response = $this->handler->setDomainIpAcl($domain, 'black', $ipList);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($setDomainIpAclResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($setDomainIpAclResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -313,18 +313,18 @@ class BaiduBce extends Platform
         $uaList = array_unique($uaList);
         // 获取响应
         try{
-            $setDomainUaAclResponse = $this->handler->setDomainUaAcl($domain, 'black', $uaList);
+            $response = $this->handler->setDomainUaAcl($domain, 'black', $uaList);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($setDomainUaAclResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($setDomainUaAclResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -338,7 +338,7 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $setCertificateResponse = $this->handler->setCertificate($domain, [
+            $response = $this->handler->setCertificate($domain, [
                 // 证书名称
                 'certName' => $certificate['cert_name'],
                 // 证书公钥
@@ -351,12 +351,12 @@ class BaiduBce extends Platform
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($setCertificateResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($setCertificateResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -369,25 +369,25 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $getCertificateResponse = $this->handler->getCertificate($domain);
+            $response = $this->handler->getCertificate($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码不为200或者错误信息为域名不存在
-        if($getCertificateResponse->statuscode != 200){
+        if($response->statuscode != 200){
             // 返回错误
-            return [null, new \Exception($getCertificateResponse->message)];
+            return [null, new \Exception($response->message)];
         }
 
         // 返回成功
         return [[
             // 证书名称
-            'cert_name' => $getCertificateResponse->certName,
+            'cert_name' => $response->certName,
             // 到期时间
-            'expire_time' => strtotime($getCertificateResponse->certStopTime),
+            'expire_time' => strtotime($response->certStopTime),
             // 部署时间
-            'deploy_time' => strtotime($getCertificateResponse->certCreateTime),
+            'deploy_time' => strtotime($response->certCreateTime),
         ], null];
     }
 
@@ -401,18 +401,18 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $delCertificateResponse = $this->handler->delCertificate($domain);
+            $response = $this->handler->delCertificate($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($delCertificateResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($delCertificateResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -425,18 +425,18 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $enableDomainResponse = $this->handler->enableDomain($domain);
+            $response = $this->handler->enableDomain($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($enableDomainResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($enableDomainResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -449,18 +449,18 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $disableDomainResponse = $this->handler->disableDomain($domain);
+            $response = $this->handler->disableDomain($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($disableDomainResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($disableDomainResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -474,18 +474,18 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $setDomainCacheTTLResponse = $this->handler->setDomainCacheTTL($domain, $cacheRules);
+            $response = $this->handler->setDomainCacheTTL($domain, $cacheRules);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($setDomainCacheTTLResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($setDomainCacheTTLResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -510,18 +510,18 @@ class BaiduBce extends Platform
 
         // 获取响应
         try{
-            $setDomainAccessLimitResponse = $this->handler->setDomainAccessLimit($domain, $accessLimit);
+            $response = $this->handler->setDomainAccessLimit($domain, $accessLimit);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($setDomainAccessLimitResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($setDomainAccessLimitResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -546,18 +546,18 @@ class BaiduBce extends Platform
 
         // 获取响应
         try{
-            $setDomainHttpHeaderResponse = $this->handler->setDomainHttpHeader($domain, $requestHeaderRules);
+            $response = $this->handler->setDomainHttpHeader($domain, $requestHeaderRules);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($setDomainHttpHeaderResponse->statuscode == 200){
+        if($response->statuscode == 200){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误
-        return [null, new \Exception($setDomainHttpHeaderResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -585,18 +585,18 @@ class BaiduBce extends Platform
 
         // 获取响应
         try{
-            $purgeResponse = $this->handler->purge($tasks);
+            $response = $this->handler->purge($tasks);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($purgeResponse->statuscode == 201){
+        if($response->statuscode == 201){
             // 返回成功
-            return [['task_id' => $purgeResponse->id], null];
+            return [['task_id' => $response->id], null];
         }
         // 返回错误
-        return [null, new \Exception($purgeResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -624,18 +624,18 @@ class BaiduBce extends Platform
         
         // 获取响应
         try{
-            $purgeResponse = $this->handler->purge($tasks);
+            $response = $this->handler->purge($tasks);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($purgeResponse->statuscode == 201){
+        if($response->statuscode == 201){
             // 返回成功
-            return [['task_id' => $purgeResponse->id], null];
+            return [['task_id' => $response->id], null];
         }
         // 返回错误
-        return [null, new \Exception($purgeResponse->message)];
+        return [null, new \Exception($response->message)];
     }
 
     /**
@@ -648,18 +648,18 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $listPurgeStatusResponse = $this->handler->listPurgeStatus($taskId);
+            $response = $this->handler->listPurgeStatus($taskId);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($listPurgeStatusResponse->statuscode != 200){
+        if($response->statuscode != 200){
             // 返回错误
-            return [null, new \Exception($listPurgeStatusResponse->message)];
+            return [null, new \Exception($response->message)];
         }
         // 获取刷新任务详情
-        $purgeTask = $listPurgeStatusResponse->details[0];
+        $purgeTask = $response->details[0];
         // 返回信息
         $status_code = '';
         $status_text = '';
@@ -693,26 +693,26 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
-            $listQuotaResponse = $this->handler->listQuota();
+            $response = $this->handler->listQuota();
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($listQuotaResponse->statuscode != 200){
+        if($response->statuscode != 200){
             // 返回错误
-            return [null, new \Exception($listQuotaResponse->message)];
+            return [null, new \Exception($response->message)];
         }
 
         // 返回成功
         return [[
             'url' => [
-                'total' => $listQuotaResponse->urlQuota,
-                'remain' => $listQuotaResponse->urlRemain,
+                'total' => $response->urlQuota,
+                'remain' => $response->urlRemain,
             ],
             'path' => [
-                'total' => $listQuotaResponse->dirQuota,
-                'remain' => $listQuotaResponse->dirRemain,
+                'total' => $response->dirQuota,
+                'remain' => $response->dirRemain,
             ]
         ], null];
     }

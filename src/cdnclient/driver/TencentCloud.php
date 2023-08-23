@@ -86,13 +86,13 @@ class TencentCloud extends Platform
     public function addCdnDomain(string $domain)
     {
         // 请求对象
-        $addCdnDomainRequest = new AddCdnDomainRequest();
+        $request = new AddCdnDomainRequest();
         // 指定域名
-        $addCdnDomainRequest->Domain = $domain;
+        $request->Domain = $domain;
         // 业务类型
-        $addCdnDomainRequest->ServiceType = 'web';
+        $request->ServiceType = 'web';
         // 回源配置
-        $addCdnDomainRequest->Origin = [
+        $request->Origin = [
             'OriginType' => 'domain',
             'Origins' => [
                 $this->options['origin_server']
@@ -103,21 +103,21 @@ class TencentCloud extends Platform
 
         // IP限频
         if($this->options['access_limit'] > 0){
-            $addCdnDomainRequest->IpFreqLimit = [
+            $request->IpFreqLimit = [
                 'Switch' => 'on',
                 'Qps' => $this->options['access_limit'],
             ];
         }
 
         // 缓存键配置
-        $addCdnDomainRequest->CacheKey = [
+        $request->CacheKey = [
             'FullUrlCache' => 'off',
             'IgnoreCase' => 'on',
         ];
 
         // 缓存配置
         if(!empty($this->options['cache_rules'])){
-            $addCdnDomainRequest->Cache = [
+            $request->Cache = [
                 'SimpleCache' => [
                     'CacheRules' => $this->options['cache_rules'],
                 ],
@@ -136,7 +136,7 @@ class TencentCloud extends Platform
                     'RulePaths' => ['*'],
                 ];
             }
-            $addCdnDomainRequest->RequestHeader = [
+            $request->RequestHeader = [
                 'Switch' => 'on',
                 'HeaderRules' => $requestHeaderRules,
             ];
@@ -146,7 +146,7 @@ class TencentCloud extends Platform
         if(!empty($this->options['black_ip'])){
             // 规则去重
             $ipList = array_unique($this->options['black_ip']);
-            $addCdnDomainRequest->IpFilter = [
+            $request->IpFilter = [
                 'Switch' => 'on',
                 'FilterType' => 'blacklist',
                 'Filters' => $ipList,
@@ -190,7 +190,7 @@ class TencentCloud extends Platform
                 // 清空临时规则
                 $uaTempList = [];
             }
-            $addCdnDomainRequest->UserAgentFilter = [
+            $request->UserAgentFilter = [
                 'Switch' => 'on',
                 'FilterRules' => $uaFilterRules,
             ];
@@ -198,19 +198,19 @@ class TencentCloud extends Platform
 
         try{
             // 响应
-            $addCdnDomainResponse = $this->handler->AddCdnDomain($addCdnDomainRequest);
+            $response = $this->handler->AddCdnDomain($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($addCdnDomainResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($addCdnDomainResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -222,23 +222,23 @@ class TencentCloud extends Platform
 	public function getRecord(string $domain)
     {
         // 请求对象
-        $getRecordRequest = new CreateVerifyRecordRequest();
-        $getRecordRequest->Domain = $domain;
+        $request = new CreateVerifyRecordRequest();
+        $request->Domain = $domain;
         try{
             // 响应
-            $getRecordResponse = $this->handler->CreateVerifyRecord($getRecordRequest);
+            $response = $this->handler->CreateVerifyRecord($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果存在错误信息
-        if(isset($getRecordResponse->Error)){
+        if(isset($response->Error)){
             // 返回错误信息
-            return [null, new \Exception($getRecordResponse->Error->Message)];
+            return [null, new \Exception($response->Error->Message)];
         }
         // 获取验证域名列表
-        $fileVerifyDomains = $getRecordResponse->FileVerifyDomains;
+        $fileVerifyDomains = $response->FileVerifyDomains;
         // 获取主域名
         $primaryDomain = $fileVerifyDomains[0];
         // 遍历列表
@@ -257,9 +257,9 @@ class TencentCloud extends Platform
             // 记录类型
             'type' => 'TXT',
             // 主机记录名
-            'record_name' => $getRecordResponse->SubDomain,
+            'record_name' => $response->SubDomain,
             // 记录值
-            'record_value' => $getRecordResponse->Record,
+            'record_value' => $response->Record,
             // 主域名
             'domain' => $primaryDomain,
         ];
@@ -291,23 +291,23 @@ class TencentCloud extends Platform
 	public function verifyRecord(string $domain)
     {
         // 请求对象
-        $verifyRecordRequest = new VerifyDomainRecordRequest();
-        $verifyRecordRequest->Domain = $domain;
+        $request = new VerifyDomainRecordRequest();
+        $request->Domain = $domain;
         try{
             // 响应
-            $verifyRecordResponse = $this->handler->VerifyDomainRecord($verifyRecordRequest);
+            $response = $this->handler->VerifyDomainRecord($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($verifyRecordResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($verifyRecordResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -319,15 +319,15 @@ class TencentCloud extends Platform
 	public function deleteCdnDomain(string $domain)
     {
         // 停用加速域名请求对象
-        $stopCdnDomainRequest = new StopCdnDomainRequest();
-        $stopCdnDomainRequest->Domain = $domain;
+        $request = new StopCdnDomainRequest();
+        $request->Domain = $domain;
         // 删除加速域名请求对象
         $deleteCdnDomainRequest = new DeleteCdnDomainRequest();
 		$deleteCdnDomainRequest->Domain = $domain;
 
         try{
             // 停用域名的响应
-            $stopCdnDomainResponse = $this->handler->StopCdnDomain($stopCdnDomainRequest);
+            $stopCdnDomainResponse = $this->handler->StopCdnDomain($request);
             // 响应
             $deleteCdnDomainResponse = $this->handler->DeleteCdnDomain($deleteCdnDomainRequest);
         } catch (\Exception $e) {
@@ -370,9 +370,9 @@ class TencentCloud extends Platform
         // 规则去重
         $ipList = array_unique($ipList);
         // 请求对象
-        $updateDomainConfigRequest = new UpdateDomainConfigRequest();
-        $updateDomainConfigRequest->Domain = $domain;
-        $updateDomainConfigRequest->IpFilter = [
+        $request = new UpdateDomainConfigRequest();
+        $request->Domain = $domain;
+        $request->IpFilter = [
             'Switch' => $switch,
             'FilterType' => 'blacklist',
             'Filters' => $ipList
@@ -380,19 +380,19 @@ class TencentCloud extends Platform
 
         try{
             // 响应
-            $updateDomainConfigResponse = $this->handler->UpdateDomainConfig($updateDomainConfigRequest);
+            $response = $this->handler->UpdateDomainConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($updateDomainConfigResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($updateDomainConfigResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -452,25 +452,25 @@ class TencentCloud extends Platform
             ];
         }
         // 请求对象
-        $updateDomainConfigRequest = new UpdateDomainConfigRequest();
-        $updateDomainConfigRequest->Domain = $domain;
-        $updateDomainConfigRequest->UserAgentFilter = $userAgentFilter;
+        $request = new UpdateDomainConfigRequest();
+        $request->Domain = $domain;
+        $request->UserAgentFilter = $userAgentFilter;
 
         try{
             // 响应
-            $updateDomainConfigResponse = $this->handler->UpdateDomainConfig($updateDomainConfigRequest);
+            $response = $this->handler->UpdateDomainConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($updateDomainConfigResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($updateDomainConfigResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -483,9 +483,9 @@ class TencentCloud extends Platform
 	public function setCertificate(string $domain, array $certificate)
     {
         // 请求对象
-        $updateDomainConfigRequest = new UpdateDomainConfigRequest();
-        $updateDomainConfigRequest->Domain = $domain;
-        $updateDomainConfigRequest->Https = [
+        $request = new UpdateDomainConfigRequest();
+        $request->Domain = $domain;
+        $request->Https = [
             'Switch' => 'on',
             'CertInfo' => [
                 // 证书名称
@@ -499,19 +499,19 @@ class TencentCloud extends Platform
 
         try{
             // 响应
-            $updateDomainConfigResponse = $this->handler->UpdateDomainConfig($updateDomainConfigRequest);
+            $response = $this->handler->UpdateDomainConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($updateDomainConfigResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($updateDomainConfigResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -523,9 +523,9 @@ class TencentCloud extends Platform
 	public function getCertificate(string $domain)
     {
         // 请求对象
-        $describeDomainsConfigRequest = new DescribeDomainsConfigRequest();
-        $describeDomainsConfigRequest->Limit = 1;
-        $describeDomainsConfigRequest->Filters = [
+        $request = new DescribeDomainsConfigRequest();
+        $request->Limit = 1;
+        $request->Filters = [
             [
                 'Name' => 'domain',
                 'Value' => [$domain],
@@ -534,24 +534,24 @@ class TencentCloud extends Platform
 
         try{
             // 响应
-            $describeDomainsConfigResponse = $this->handler->DescribeDomainsConfig($describeDomainsConfigRequest);
+            $response = $this->handler->DescribeDomainsConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果存在错误信息
-        if(isset($describeDomainsConfigResponse->Error)){
+        if(isset($response->Error)){
             // 返回错误信息
-            return [null, new \Exception($describeDomainsConfigResponse->Error->Message)];
+            return [null, new \Exception($response->Error->Message)];
         }
         // 如果未查询到
-        if(!isset($describeDomainsConfigResponse->Domains[0])){
+        if(!isset($response->Domains[0])){
             // 返回错误信息
             return [null, new \Exception('未查询到域名信息')];
         }
         // 获取域名配置信息
-        $domainDetail = $describeDomainsConfigResponse->Domains[0];
+        $domainDetail = $response->Domains[0];
         // 如果没有证书信息
         if(is_null($domainDetail->Https->CertInfo)){
             // 返回错误信息
@@ -579,27 +579,27 @@ class TencentCloud extends Platform
 	public function deleteCertificate(string $domain)
     {
         // 请求对象
-        $updateDomainConfigRequest = new UpdateDomainConfigRequest();
-        $updateDomainConfigRequest->Domain = $domain;
-        $updateDomainConfigRequest->Https = [
+        $request = new UpdateDomainConfigRequest();
+        $request->Domain = $domain;
+        $request->Https = [
             'Switch' => 'on',
         ];
 
         try{
             // 响应
-            $updateDomainConfigResponse = $this->handler->UpdateDomainConfig($updateDomainConfigRequest);
+            $response = $this->handler->UpdateDomainConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($updateDomainConfigResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($updateDomainConfigResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -611,24 +611,24 @@ class TencentCloud extends Platform
 	public function startCdnDomain(string $domain)
     {
         // 请求对象
-        $startCdnDomainRequest = new StartCdnDomainRequest();
-        $startCdnDomainRequest->Domain = $domain;
+        $request = new StartCdnDomainRequest();
+        $request->Domain = $domain;
 
         try{
             // 响应
-            $startCdnDomainResponse = $this->handler->StartCdnDomain($startCdnDomainRequest);
+            $response = $this->handler->StartCdnDomain($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($startCdnDomainResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($startCdnDomainResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -640,24 +640,24 @@ class TencentCloud extends Platform
 	public function stopCdnDomain(string $domain)
     {
         // 请求对象
-        $stopCdnDomainRequest = new StopCdnDomainRequest();
-        $stopCdnDomainRequest->Domain = $domain;
+        $request = new StopCdnDomainRequest();
+        $request->Domain = $domain;
 
         try{
             // 响应
-            $stopCdnDomainRequest = $this->handler->StopCdnDomain($stopCdnDomainRequest);
+            $response = $this->handler->StopCdnDomain($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($stopCdnDomainRequest->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($stopCdnDomainRequest->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -670,9 +670,9 @@ class TencentCloud extends Platform
 	public function setCacheRules(string $domain, array $cacheRules)
     {
         // 请求对象
-        $updateDomainConfigRequest = new UpdateDomainConfigRequest();
-        $updateDomainConfigRequest->Domain = $domain;
-        $updateDomainConfigRequest->Cache = [
+        $request = new UpdateDomainConfigRequest();
+        $request->Domain = $domain;
+        $request->Cache = [
             'SimpleCache' => [
                 'CacheRules' => $cacheRules,
             ]
@@ -680,19 +680,19 @@ class TencentCloud extends Platform
 
         try{
             // 响应
-            $updateDomainConfigResponse = $this->handler->UpdateDomainConfig($updateDomainConfigRequest);
+            $response = $this->handler->UpdateDomainConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($updateDomainConfigResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($updateDomainConfigResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -716,25 +716,25 @@ class TencentCloud extends Platform
         }
 
         // 请求对象
-        $updateDomainConfigRequest = new UpdateDomainConfigRequest();
-        $updateDomainConfigRequest->Domain = $domain;
-        $updateDomainConfigRequest->IpFreqLimit = $ipFreqLimit;
+        $request = new UpdateDomainConfigRequest();
+        $request->Domain = $domain;
+        $request->IpFreqLimit = $ipFreqLimit;
         
         try{
             // 响应
-            $updateDomainConfigResponse = $this->handler->UpdateDomainConfig($updateDomainConfigRequest);
+            $response = $this->handler->UpdateDomainConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($updateDomainConfigResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($updateDomainConfigResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -768,25 +768,25 @@ class TencentCloud extends Platform
         }
 
         // 请求对象
-        $updateDomainConfigRequest = new UpdateDomainConfigRequest();
-        $updateDomainConfigRequest->Domain = $domain;
-        $updateDomainConfigRequest->RequestHeader = $requestHeader;
+        $request = new UpdateDomainConfigRequest();
+        $request->Domain = $domain;
+        $request->RequestHeader = $requestHeader;
         
         try{
             // 响应
-            $updateDomainConfigResponse = $this->handler->UpdateDomainConfig($updateDomainConfigRequest);
+            $response = $this->handler->UpdateDomainConfig($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($updateDomainConfigResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
             return ['操作成功', null];
         }
         // 返回错误信息
-        return [null, new \Exception($updateDomainConfigResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -803,24 +803,24 @@ class TencentCloud extends Platform
         }
 
         // 请求对象
-        $purgeUrlsCacheRequest = new PurgeUrlsCacheRequest();
-        $purgeUrlsCacheRequest->Urls = $urls;
+        $request = new PurgeUrlsCacheRequest();
+        $request->Urls = $urls;
 
         try{
             // 响应
-            $purgeUrlsCacheResponse = $this->handler->PurgeUrlsCache($purgeUrlsCacheRequest);
+            $response = $this->handler->PurgeUrlsCache($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($purgeUrlsCacheResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
-            return [['task_id' => $purgeUrlsCacheResponse->TaskId], null];
+            return [['task_id' => $response->TaskId], null];
         }
         // 返回错误信息
-        return [null, new \Exception($purgeUrlsCacheResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -837,25 +837,25 @@ class TencentCloud extends Platform
         }
 
         // 请求对象
-        $purgePathCacheRequest = new PurgePathCacheRequest();
-        $purgePathCacheRequest->Paths = $paths;
-        $purgePathCacheRequest->FlushType = 'delete';
+        $request = new PurgePathCacheRequest();
+        $request->Paths = $paths;
+        $request->FlushType = 'delete';
 
         try{
             // 响应
-            $purgePathCacheResponse = $this->handler->PurgePathCache($purgePathCacheRequest);
+            $response = $this->handler->PurgePathCache($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(!isset($purgePathCacheResponse->Error)){
+        if(!isset($response->Error)){
             // 返回成功
-            return [['task_id' => $purgePathCacheResponse->TaskId], null];
+            return [['task_id' => $response->TaskId], null];
         }
         // 返回错误信息
-        return [null, new \Exception($purgePathCacheResponse->Error->Message)];
+        return [null, new \Exception($response->Error->Message)];
     }
 
     /**
@@ -867,24 +867,24 @@ class TencentCloud extends Platform
 	public function getPurgeStatus($taskId)
     {
         // 请求对象
-        $describePurgeTasksRequest = new DescribePurgeTasksRequest();
-        $describePurgeTasksRequest->TaskId = $taskId;
+        $request = new DescribePurgeTasksRequest();
+        $request->TaskId = $taskId;
 
         try{
             // 响应
-            $describePurgeTasksResponse = $this->handler->DescribePurgeTasks($describePurgeTasksRequest);
+            $response = $this->handler->DescribePurgeTasks($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(isset($describePurgeTasksResponse->Error)){
+        if(isset($response->Error)){
             // 返回错误信息
-            return [null, new \Exception($describePurgeTasksResponse->Error->Message)];
+            return [null, new \Exception($response->Error->Message)];
         }
         // 获取刷新任务详情
-        $purgeTask = $describePurgeTasksResponse->PurgeLogs[0];
+        $purgeTask = $response->PurgeLogs[0];
         // 返回信息
         $status_code = '';
         $status_text = '';
@@ -917,23 +917,23 @@ class TencentCloud extends Platform
 	public function getPurgeQuota()
     {
         // 请求对象
-        $describePurgeQuotaRequest = new DescribePurgeQuotaRequest();
+        $request = new DescribePurgeQuotaRequest();
 
         try{
             // 响应
-            $describePurgeQuotaResponse = $this->handler->DescribePurgeQuota($describePurgeQuotaRequest);
+            $response = $this->handler->DescribePurgeQuota($request);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
 
         // 如果不存在错误信息
-        if(isset($describePurgeQuotaResponse->Error)){
+        if(isset($response->Error)){
             // 返回错误信息
-            return [null, new \Exception($describePurgeQuotaResponse->Error->Message)];
+            return [null, new \Exception($response->Error->Message)];
         }
         // 获取URL刷新限额
-        $urlPurges = $describePurgeQuotaResponse->UrlPurge;
+        $urlPurges = $response->UrlPurge;
         $urlPurgeQuota = $urlPurges[0];
         // 遍历
         foreach($urlPurges as $item){
@@ -944,7 +944,7 @@ class TencentCloud extends Platform
         }
         
         // 获取目录刷新限额
-        $pathPurges = $describePurgeQuotaResponse->PathPurge;
+        $pathPurges = $response->PathPurge;
         $pathPurgeQuota = $pathPurges[0];
         // 遍历
         foreach($pathPurges as $item){

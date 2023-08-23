@@ -250,20 +250,20 @@ class Ctyun extends Platform
 
         // 获取响应
         try{
-            $purgeResponse = $this->handler->refreshManageCreate($urls, 1);
+            $response = $this->handler->refreshManageCreate($urls, 1);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($purgeResponse['code'] == 100000){
+        if($response['code'] == 100000){
             // 获取响应结果
-            $result = $purgeResponse['result'][0];
+            $result = $response['result'][0];
             // 返回成功
             return [['task_id' => $result['task_id']], null];
         }
         // 返回错误
-        return [null, new \Exception($purgeResponse['message'])];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -281,20 +281,20 @@ class Ctyun extends Platform
 
         // 获取响应
         try{
-            $purgeResponse = $this->handler->refreshManageCreate($urls, 2);
+            $response = $this->handler->refreshManageCreate($urls, 2);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($purgeResponse['code'] == 100000){
+        if($response['code'] == 100000){
             // 获取响应结果
-            $result = $purgeResponse['result'][0];
+            $result = $response['result'][0];
             // 返回成功
             return [['task_id' => $result['task_id']], null];
         }
         // 返回错误
-        return [null, new \Exception($purgeResponse['message'])];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -307,7 +307,7 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
-            $refreshManageResponse = $this->handler->refreshManageQuery([
+            $response = $this->handler->refreshManageQuery([
                 'type' => 2,
                 'task_id' => $taskId,
                 'page_size' => 1,
@@ -317,12 +317,12 @@ class Ctyun extends Platform
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($refreshManageResponse['code'] != 100000){
+        if($response['code'] != 100000){
             // 返回错误
-            return [null, new \Exception($refreshManageResponse['message'])];
+            return [null, new \Exception($response['message'])];
         }
         // 获取刷新任务详情
-        $purgeTask = $refreshManageResponse['result'][0];
+        $purgeTask = $response['result'][0];
         // 返回信息
         $status_code = '';
         $status_text = '';
@@ -356,18 +356,18 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
-            $listQuotaResponse = $this->handler->refreshManageQuota();
+            $response = $this->handler->refreshManageQuota();
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果请求状态码为200
-        if($listQuotaResponse['code'] != 100000){
+        if($response['code'] != 100000){
             // 返回错误
-            return [null, new \Exception($listQuotaResponse['message'])];
+            return [null, new \Exception($response['message'])];
         }
         // 获取限额数据
-        $purgeQuota = $listQuotaResponse['result']['quotas'][0];
+        $purgeQuota = $response['result']['quotas'][0];
         // 返回成功
         return [[
             'url' => [
