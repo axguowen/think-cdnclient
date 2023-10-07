@@ -103,7 +103,24 @@ return [
             // 回源请求头
             'request_header'=> [],
             // 默认缓存规则
-            'cache_rules'   => [],
+            'cache_rules'   => [
+                [
+                    'cache_type' => 3,
+                    'cache_with_args' => 0,
+                    'mode' => 3,
+                    'file_type' => '/',
+                    'priority' => 5,
+                    'ttl' => 3600 * 24 * 365,
+                ],
+                [
+                    'cache_type' => 1,
+                    'cache_with_args' => 0,
+                    'mode' => 1,
+                    'file_type' => '/nocache/dir',
+                    'priority' => 10,
+                    'ttl' => 0,
+                ],
+            ],
             // 默认IP限频
             'access_limit'  => 0,
             // IP黑名单

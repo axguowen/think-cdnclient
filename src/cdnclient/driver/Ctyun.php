@@ -69,8 +69,80 @@ class Ctyun extends Platform
      */
     public function addCdnDomain(string $domain)
     {
+        // 源站地址
+        $origin = [
+            [
+                'origin' => $this->options['origin_server'],
+                'port' => 80,
+                'weight' => 10,
+                'role' => 'master',
+            ]
+        ];
+
+        // 获取响应
+        try{
+            $response = $this->handler->domainManage($domain, $origin);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 要设置的参数
+            $updateData = [];
+            // IP限频
+            if($this->options['access_limit'] > 0){
+                $updateData['entry_limits'] = [
+                    [
+                        'id' => 'entry_condition_all',
+                        'limit_element' => 'entry_limits',
+                        'frequency_threshold' => $this->options['access_limit'],
+                        'frequency_time_range' => 1,
+                        'forbidden_duration' => 900,
+                        'priority' => 10,
+                    ],
+                ];
+                $updateData['entry_limits_condition'] = [
+                    'entry_condition_all' => [
+                        [
+                            'mode' => 3,
+                            'content' => '/',
+                        ],
+                    ],
+                ];
+            }
+            // 缓存配置
+            if(!empty($this->options['cache_rules'])){
+                $updateData['filetype_ttl'] = $this->options['cache_rules'];
+            }
+            // 回源请求头配置
+            if(!empty($this->options['request_header'])){
+                // 回源请求头规则
+                $requestHeaderRules = [];
+                foreach($this->options['request_header'] as $headerName => $headerValue){
+                    $requestHeaderRules[] = [
+                        'key' => $headerName,
+                        'value' => $headerValue,
+                    ];
+                }
+                $updateData['req_headers'] = $requestHeaderRules;
+            }
+            // IP黑名单配置
+            if(!empty($this->options['black_ip'])){
+                // 规则去重
+                $ipList = array_unique($this->options['black_ip']);
+                $updateData['ip_black_list'] = implode(',', $ipList);
+            }
+
+            // 如果不为空
+            if(!empty($updateData)){
+                $this->handler->domainIncreUpdate($domain, $updateData);
+            }
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -81,20 +153,81 @@ class Ctyun extends Platform
 	 */
 	public function getRecord(string $domain)
     {
-        // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        // 获取验证归属权信息
+        try{
+            $response = $this->handler->howToVerify($domain);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回失败
+        if($response['code'] != 100000){
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        }
+        // 获取主域名
+        $primaryDomain = $response['domain_zone'];
+        // 获取子域名
+        $subDomain = trim(str_replace($primaryDomain, '', $domain), '.');
+
+        // txt解析
+        $record_txt = [
+            // 记录类型
+            'type' => 'TXT',
+            // 主机记录名
+            'record_name' => 'dnsverify',
+            // 记录值
+            'record_value' => $response['content'],
+            // 主域名
+            'domain' => $primaryDomain,
+        ];
+        // cname解析
+        $record_cname = [
+            // 记录类型
+            'type' => 'CNAME',
+            // 主机记录名
+            'record_name' => $subDomain,
+            // 记录值
+            'record_value' => $domain . '.ctadns.cn',
+            // 主域名
+            'domain' => $primaryDomain,
+        ];
+
+        // 获取
+        return [[
+            'record_txt' => $record_txt,
+            'record_cname' => $record_cname,
+        ], null];
 	}
 
     /**
 	 * 验证域名归属权
 	 * @access public
 	 * @param string $domain
+     * @param int $verifyType 验证类型
 	 * @return array
 	 */
-	public function verifyRecord(string $domain)
+	public function verifyRecord(string $domain, int $verifyType = 1)
     {
+        // 获取响应
+        try{
+            $response = $this->handler->verifyDomainOwnership($domain, $verifyType);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回失败
+        if($response['code'] != 100000){
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        }
+        // 如果验证失败
+        if(true === $response['verify_result']){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception('域名未通过所有权验证')];
     }
 
     /**
@@ -105,8 +238,20 @@ class Ctyun extends Platform
 	 */
 	public function deleteCdnDomain(string $domain)
     {
+        // 获取响应
+        try{
+            $response = $this->handler->domainChangeStatus($domain, 1);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -118,8 +263,22 @@ class Ctyun extends Platform
 	 */
 	public function setIpBlackList(string $domain, array $ipList = [])
     {
+        // 获取响应
+        try{
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'ip_black_list' => implode(',', $ipList)
+            ]);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -144,8 +303,36 @@ class Ctyun extends Platform
 	 */
 	public function setCertificate(string $domain, array $certificate)
     {
-        // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        // 获取响应
+        try{
+            // 删除证书
+            $this->handler->certDelete($domain);
+            // 创建证书
+            $response = $this->handler->certCreate($domain, $certificate['cert_private'], $certificate['cert_public']);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+
+            // 更新域名配置
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'https_status' => 'on',
+                'cert_name' => $domain,
+            ]);
+
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
     }
 
     /**
@@ -156,8 +343,27 @@ class Ctyun extends Platform
 	 */
 	public function getCertificate(string $domain)
     {
-        // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        // 获取响应
+        try{
+            $response = $this->handler->domainQueryDomainCertInfo($domain);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回失败
+        if($response['code'] != 100000){
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        }
+        // 返回成功
+        return [[
+            // 证书名称
+            'cert_name' => $response['name'],
+            // 到期时间
+            'expire_time' => $response['expires'],
+            // 部署时间
+            'deploy_time' => $response['created'],
+        ], null];
     }
 
     /**
@@ -168,8 +374,31 @@ class Ctyun extends Platform
 	 */
 	public function deleteCertificate(string $domain)
     {
-        // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        // 获取响应
+        try{
+            // 删除证书
+            $response = $this->handler->certDelete($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 更新域名配置
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'https_status' => 'off',
+                'cert_name' => '',
+            ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
     }
 
     /**
@@ -180,8 +409,20 @@ class Ctyun extends Platform
 	 */
 	public function startCdnDomain(string $domain)
     {
+        // 获取响应
+        try{
+            $response = $this->handler->domainChangeStatus($domain, 3);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -192,8 +433,20 @@ class Ctyun extends Platform
 	 */
 	public function stopCdnDomain(string $domain)
     {
+        // 获取响应
+        try{
+            $response = $this->handler->domainChangeStatus($domain, 2);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -205,8 +458,22 @@ class Ctyun extends Platform
 	 */
 	public function setCacheRules(string $domain, array $cacheRules)
     {
+        // 获取响应
+        try{
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'filetype_ttl' => $cacheRules
+            ]);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -218,8 +485,39 @@ class Ctyun extends Platform
 	 */
 	public function setAccessLimit(string $domain, int $qps = 0)
     {
+        // 获取响应
+        try{
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'entry_limits' => [
+                    [
+                        'id' => 'entry_condition_all',
+                        'limit_element' => 'entry_limits',
+                        'frequency_threshold' => $qps,
+                        'frequency_time_range' => 1,
+                        'forbidden_duration' => 900,
+                        'priority' => 10,
+                    ]
+                ],
+                'entry_limits_condition' => [
+                    'entry_condition_all' => [
+                        [
+                            'mode' => 3,
+                            'content' => '/',
+                        ]
+                    ]
+                ],
+            ]);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
     
     /**
@@ -231,8 +529,30 @@ class Ctyun extends Platform
 	 */
 	public function setRequestHeader(string $domain, array $header)
     {
+        // 回源请求头规则
+        $requestHeaderRules = [];
+        foreach($header as $headerName => $headerValue){
+            $requestHeaderRules[] = [
+                'key' => $headerName,
+                'value' => $headerValue,
+            ];
+        }
+        // 获取响应
+        try{
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'req_headers' => $requestHeaderRules,
+            ]);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            // 返回成功
+            return ['操作成功', null];
+        }
         // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        return [null, new \Exception($response['message'])];
     }
 
     /**
