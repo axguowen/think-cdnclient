@@ -122,13 +122,13 @@ class BaiduBce extends Platform
             // IP黑名单配置
             if(!empty($this->options['black_ip'])){
                 // 规则去重
-                $ipList = array_unique($ipList);
+                $ipList = array_unique($this->options['black_ip']);
                 $this->handler->setDomainIpAcl($domain, 'black', $ipList);
             }
             // UA黑名单配置
-            if(!empty($this->options['black_ip'])){
+            if(!empty($this->options['black_ua'])){
                 // 规则去重
-                $uaList = array_unique($uaList);
+                $uaList = array_unique($this->options['black_ua']);
                 $this->handler->setDomainUaAcl($domain, 'black', $uaList);
             }
             // 返回成功
