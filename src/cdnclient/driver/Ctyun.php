@@ -134,10 +134,11 @@ class Ctyun extends Platform
                 $updateData['ip_black_list'] = implode(',', $ipList);
             }
 
-            // 如果不为空
+            /*/ 不能直接更新配置
             if(!empty($updateData)){
                 $this->handler->domainIncreUpdate($domain, $updateData);
             }
+            //*/
             // 返回成功
             return ['操作成功', null];
         }
