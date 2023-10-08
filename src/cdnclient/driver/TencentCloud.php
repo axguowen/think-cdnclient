@@ -304,7 +304,7 @@ class TencentCloud extends Platform
         // 如果不存在错误信息
         if(!isset($response->Error)){
             // 返回成功
-            return ['操作成功', null];
+            return ['域名所有权验证通过', null];
         }
         // 返回错误信息
         return [null, new \Exception($response->Error->Message)];

@@ -243,7 +243,7 @@ class BaiduBce extends Platform
         // 如果验证失败
         if(true === $response->isValid){
             // 返回成功
-            return ['操作成功', null];
+            return ['域名所有权验证通过', null];
         }
         // 返回错误
         return [null, new \Exception($response->message)];

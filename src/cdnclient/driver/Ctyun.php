@@ -133,6 +133,15 @@ class Ctyun extends Platform
                 $ipList = array_unique($this->options['black_ip']);
                 $updateData['ip_black_list'] = implode(',', $ipList);
             }
+            // UA黑名单配置
+            if(!empty($this->options['black_ua'])){
+                // 规则去重
+                $uaList = array_unique($this->options['black_ua']);
+                $updateData['user_agent'] = [
+                    'type' => 0,
+                    'ua' => $uaList,
+                ];
+            }
 
             /*/ 不能直接更新配置
             if(!empty($updateData)){
@@ -166,22 +175,65 @@ class Ctyun extends Platform
             // 返回错误
             return [null, new \Exception($response['message'])];
         }
+        // CNAME解析地址
+        $cnameRecordValue = $domain . '.ctadns.cn';
+        // 要返回的信息
+        $resultData = [];
+        // 如果是未通过验证
+        if(false === $response['verify_result']){
+            // 如果没给验证解析记录值
+            if(!isset($response['content'])){
+                return [null, new \Exception($response['verify_desc'])];
+            }
+            // 获取主域名
+            $primaryDomain = $response['domain_zone'];
+            // 获取子域名
+            $subDomain = trim(str_replace($primaryDomain, '', $domain), '.');
+
+            // txt解析
+            $record_txt = [
+                // 记录类型
+                'type' => 'TXT',
+                // 主机记录名
+                'record_name' => 'dnsverify',
+                // 记录值
+                'record_value' => $response['content'],
+                // 主域名
+                'domain' => $primaryDomain,
+            ];
+            // cname解析
+            $record_cname = [
+                // 记录类型
+                'type' => 'CNAME',
+                // 主机记录名
+                'record_name' => $subDomain,
+                // 记录值
+                'record_value' => $cnameRecordValue,
+                // 主域名
+                'domain' => $primaryDomain,
+            ];
+
+            // 获取
+            return [[
+                'record_txt' => $record_txt,
+                'record_cname' => $record_cname,
+            ], null];
+        }
+
+        // 验证已通过则获取域名格式化信息
+        $domainFormatResult = \think\cdnclient\utils\DomainFormator::format($domain);
+        // 如果失败
+        if(is_null($domainFormatResult[0])){
+            return $domainFormatResult[1];
+        }
+
         // 获取主域名
-        $primaryDomain = $response['domain_zone'];
+        $primaryDomain = $domainFormatResult[0]['primary'];
         // 获取子域名
-        $subDomain = trim(str_replace($primaryDomain, '', $domain), '.');
+        $subDomain = $domainFormatResult[0]['sub_domain'];
 
         // txt解析
-        $record_txt = [
-            // 记录类型
-            'type' => 'TXT',
-            // 主机记录名
-            'record_name' => 'dnsverify',
-            // 记录值
-            'record_value' => $response['content'],
-            // 主域名
-            'domain' => $primaryDomain,
-        ];
+        $record_txt = null;
         // cname解析
         $record_cname = [
             // 记录类型
@@ -212,23 +264,57 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回无需验证
+                return [null, new \Exception('域名已添加无需验证')];
+            }
+            // 没有在途工单则尝试获取域名信息
+            $response = $this->handler->domainInfo($domain);
+            // 存在域名信息则无需验证
+            if($response['code'] == 100000){
+                // 返回无需验证
+                return [null, new \Exception('域名已添加无需验证')];
+            }
+
+            // 不存在域名则获取验证信息核对是否已经通过验证
+            $response = $this->handler->howToVerify($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果无需验证
+            if(true === $response['verify_result']){
+                // 返回无需验证
+                return [null, new \Exception('域名已添加无需验证')];
+            }
+
+            // 需要验证则开始验证
             $response = $this->handler->verifyDomainOwnership($domain, $verifyType);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果验证成功
+            if(true === $response['verify_result']){
+                // 返回成功
+                return ['域名所有权验证通过', null];
+            }
+            // 返回错误
+            return [null, new \Exception('域名未通过所有权验证')];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回失败
-        if($response['code'] != 100000){
-            // 返回错误
-            return [null, new \Exception($response['message'])];
-        }
-        // 如果验证失败
-        if(true === $response['verify_result']){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception('域名未通过所有权验证')];
     }
 
     /**
@@ -241,18 +327,31 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 开始删除
             $response = $this->handler->domainChangeStatus($domain, 1);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回成功
-        if($response['code'] == 100000){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -266,20 +365,34 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 更新配置
+            $ipList = array_unique($ipList);
             $response = $this->handler->domainIncreUpdate($domain, [
                 'ip_black_list' => implode(',', $ipList)
             ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回成功
-        if($response['code'] == 100000){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -291,8 +404,38 @@ class Ctyun extends Platform
 	 */
 	public function setUaBlackList(string $domain, array $uaList = [])
     {
-        // 返回错误
-        return [null, new \Exception('暂不支持该功能')];
+        // 获取响应
+        try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 开始更新
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'user_agent' => [
+                    'type' => 0,
+                    'ua' => array_unique($uaList),
+                ]
+            ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
     }
 
     /**
@@ -306,6 +449,18 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
             // 删除证书
             $this->handler->certDelete($domain);
             // 创建证书
@@ -377,6 +532,18 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
             // 删除证书
             $response = $this->handler->certDelete($domain);
             // 如果返回失败
@@ -412,18 +579,31 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 开始更新
             $response = $this->handler->domainChangeStatus($domain, 3);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回成功
-        if($response['code'] == 100000){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -436,18 +616,31 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 开始更新
             $response = $this->handler->domainChangeStatus($domain, 2);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回成功
-        if($response['code'] == 100000){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -461,20 +654,33 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 开始更新
             $response = $this->handler->domainIncreUpdate($domain, [
                 'filetype_ttl' => $cacheRules
             ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回成功
-        if($response['code'] == 100000){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
     }
 
     /**
@@ -488,6 +694,19 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 开始更新
             $response = $this->handler->domainIncreUpdate($domain, [
                 'entry_limits' => [
                     [
@@ -508,17 +727,17 @@ class Ctyun extends Platform
                     ]
                 ],
             ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回成功
-        if($response['code'] == 100000){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
     }
     
     /**
@@ -530,30 +749,43 @@ class Ctyun extends Platform
 	 */
 	public function setRequestHeader(string $domain, array $header)
     {
-        // 回源请求头规则
-        $requestHeaderRules = [];
-        foreach($header as $headerName => $headerValue){
-            $requestHeaderRules[] = [
-                'key' => $headerName,
-                'value' => $headerValue,
-            ];
-        }
         // 获取响应
         try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 回源请求头规则
+            $requestHeaderRules = [];
+            foreach($header as $headerName => $headerValue){
+                $requestHeaderRules[] = [
+                    'key' => $headerName,
+                    'value' => $headerValue,
+                ];
+            }
+            // 开始更新
             $response = $this->handler->domainIncreUpdate($domain, [
                 'req_headers' => $requestHeaderRules,
             ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
-        // 如果返回成功
-        if($response['code'] == 100000){
-            // 返回成功
-            return ['操作成功', null];
-        }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
     }
 
     /**
