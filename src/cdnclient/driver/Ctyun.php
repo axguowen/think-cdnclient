@@ -363,6 +363,13 @@ class Ctyun extends Platform
 	 */
 	public function setIpBlackList(string $domain, array $ipList = [])
     {
+        // 规则去重
+        $ipList = array_unique($ipList);
+        // 去除空值
+        $ipList = array_filter($ipList, function($value) {
+            return !empty($value);
+        });
+        
         // 获取响应
         try{
             // 查询域名是否存在在途工单
@@ -377,8 +384,7 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
-            // 更新配置
-            $ipList = array_unique($ipList);
+
             $response = $this->handler->domainIncreUpdate($domain, [
                 'ip_black_list' => implode(',', $ipList)
             ]);
@@ -404,6 +410,13 @@ class Ctyun extends Platform
 	 */
 	public function setUaBlackList(string $domain, array $uaList = [])
     {
+        // 规则去重
+        $uaList = array_unique($uaList);
+        // 去除空值
+        $uaList = array_filter($uaList, function($value) {
+            return !empty($value);
+        });
+
         // 获取响应
         try{
             // 查询域名是否存在在途工单
@@ -422,7 +435,7 @@ class Ctyun extends Platform
             $response = $this->handler->domainIncreUpdate($domain, [
                 'user_agent' => [
                     'type' => 0,
-                    'ua' => array_unique($uaList),
+                    'ua' => $uaList,
                 ]
             ]);
             // 如果返回成功

@@ -284,6 +284,11 @@ class BaiduBce extends Platform
     {
         // 规则去重
         $ipList = array_unique($ipList);
+        // 去除空值
+        $ipList = array_filter($ipList, function($value) {
+            return !empty($value);
+        });
+
         // 获取响应
         try{
             $response = $this->handler->setDomainIpAcl($domain, 'black', $ipList);
@@ -311,6 +316,11 @@ class BaiduBce extends Platform
     {
         // 规则去重
         $uaList = array_unique($uaList);
+        // 去除空值
+        $uaList = array_filter($uaList, function($value) {
+            return !empty($value);
+        });
+
         // 获取响应
         try{
             $response = $this->handler->setDomainUaAcl($domain, 'black', $uaList);

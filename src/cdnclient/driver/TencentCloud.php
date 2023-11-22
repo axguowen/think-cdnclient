@@ -146,6 +146,11 @@ class TencentCloud extends Platform
         if(!empty($this->options['black_ip'])){
             // 规则去重
             $ipList = array_unique($this->options['black_ip']);
+            // 去除空值
+            $ipList = array_filter($ipList, function($value) {
+                return !empty($value);
+            });
+
             $request->IpFilter = [
                 'Switch' => 'on',
                 'FilterType' => 'blacklist',
@@ -157,6 +162,11 @@ class TencentCloud extends Platform
         if(!empty($this->options['black_ua'])){
             // 规则去重
             $uaList = array_unique($this->options['black_ua']);
+            // 去除空值
+            $uaList = array_filter($uaList, function($value) {
+                return !empty($value);
+            });
+
             // 规则列表
             $uaFilterRules = [];
             // 临时规则列表
@@ -369,6 +379,11 @@ class TencentCloud extends Platform
         
         // 规则去重
         $ipList = array_unique($ipList);
+        // 去除空值
+        $ipList = array_filter($ipList, function($value) {
+            return !empty($value);
+        });
+
         // 请求对象
         $request = new UpdateDomainConfigRequest();
         $request->Domain = $domain;
@@ -412,6 +427,11 @@ class TencentCloud extends Platform
         if(!empty($uaList)){
             // 规则去重
             $uaList = array_unique($uaList);
+            // 去除空值
+            $uaList = array_filter($uaList, function($value) {
+                return !empty($value);
+            });
+            
             // 规则列表
             $filterRules = [];
             // 临时规则列表
