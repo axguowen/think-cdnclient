@@ -370,28 +370,29 @@ class TencentCloud extends Platform
 	 */
 	public function setIpBlackList(string $domain, array $ipList = [])
     {
-        // 开启状态
-        $switch = 'on';
-        // IP列表为空
-        if(empty($ipList)){
-            $switch = 'off';
-        }
-        
+        // 规则
+        $ipFilter = [
+            'Switch' => 'off',
+        ];
         // 规则去重
         $ipList = array_unique($ipList);
         // 去除空值
         $ipList = array_filter($ipList, function($value) {
             return !empty($value);
         });
+        // IP列表不为空
+        if(!empty($ipList)){
+            $ipFilter = [
+                'Switch' => 'on',
+                'FilterType' => 'blacklist',
+                'Filters' => $ipList
+            ];
+        }
 
         // 请求对象
         $request = new UpdateDomainConfigRequest();
         $request->Domain = $domain;
-        $request->IpFilter = [
-            'Switch' => $switch,
-            'FilterType' => 'blacklist',
-            'Filters' => $ipList
-        ];
+        $request->IpFilter = $ipFilter;
 
         try{
             // 响应
