@@ -261,6 +261,10 @@ class BaiduBce extends Platform
         try{
             $response = $this->handler->deleteDomain($domain);
         } catch (\Exception $e) {
+            // 如果是域名不存在错误
+            if($e->getResponse()->getStatusCode() == 404){
+                return ['操作成功', null];
+            }
             // 返回错误
             return [null, $e];
         }
