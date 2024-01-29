@@ -173,7 +173,7 @@ class Ctyun extends Platform
         // 如果返回失败
         if($response['code'] != 100000){
             // 返回错误
-            return [null, new \Exception($response['message'])];
+            return [null, new \Exception($response['message'], $response['code'])];
         }
         // CNAME解析地址
         $cnameRecordValue = $domain . '.ctadns.cn';
@@ -269,7 +269,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -289,7 +289,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果无需验证
             if(true === $response['verify_result']){
@@ -302,7 +302,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果验证成功
             if(true === $response['verify_result']){
@@ -332,7 +332,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -347,7 +347,7 @@ class Ctyun extends Platform
                 return ['操作成功', null];
             }
             // 返回错误
-            return [null, new \Exception($response['message'])];
+            return [null, new \Exception($response['message'], $response['code'])];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
@@ -377,7 +377,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -424,7 +424,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -467,7 +467,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -481,7 +481,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
 
             // 更新域名配置
@@ -522,7 +522,7 @@ class Ctyun extends Platform
         // 如果返回失败
         if($response['code'] != 100000){
             // 返回错误
-            return [null, new \Exception($response['message'])];
+            return [null, new \Exception($response['message'], $response['code'])];
         }
         // 返回成功
         return [[
@@ -550,7 +550,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -562,7 +562,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 更新域名配置
             $response = $this->handler->domainIncreUpdate($domain, [
@@ -597,7 +597,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -634,7 +634,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -672,7 +672,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -712,7 +712,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -769,7 +769,7 @@ class Ctyun extends Platform
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
-                return [null, new \Exception($response['message'])];
+                return [null, new \Exception($response['message'], $response['code'])];
             }
             // 如果存在在途工单
             if(true === $response['is_exist']){
@@ -885,7 +885,7 @@ class Ctyun extends Platform
         // 如果请求状态码为200
         if($response['code'] != 100000){
             // 返回错误
-            return [null, new \Exception($response['message'])];
+            return [null, new \Exception($response['message'], $response['code'])];
         }
         // 获取刷新任务详情
         $purgeTask = $response['result'][0];
@@ -930,7 +930,7 @@ class Ctyun extends Platform
         // 如果请求状态码为200
         if($response['code'] != 100000){
             // 返回错误
-            return [null, new \Exception($response['message'])];
+            return [null, new \Exception($response['message'], $response['code'])];
         }
         // 获取限额数据
         $purgeQuota = $response['result']['quotas'][0];
