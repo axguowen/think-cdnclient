@@ -697,6 +697,34 @@ class Ctyun extends Platform
     }
 
     /**
+	 * 批量设置缓存规则
+	 * @access public
+	 * @param array|string $domain
+	 * @param array $cacheRules
+	 * @return array
+	 */
+	public function batchSetCacheRules($domain, array $cacheRules)
+    {
+        // 获取响应
+        try{
+            // 开始更新
+            $response = $this->handler->domainBatchUpdateConfigurationInformation($domain, [
+                'filetype_ttl' => $cacheRules
+            ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return [$response['domain_details'], null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+    }
+
+    /**
 	 * 设置IP访问限频
 	 * @access public
 	 * @param string $domain
