@@ -36,6 +36,8 @@ class Ctyun extends Platform
         'origin_server' => '',
         // 回源HOST
         'origin_host' => '',
+        // 回源请求头
+        'request_header'=> [],
         // 缓存规则
         'cache_rules' => [],
         // 默认IP限频
@@ -69,85 +71,81 @@ class Ctyun extends Platform
      */
     public function addCdnDomain(string $domain)
     {
-        // 源站地址
-        $origin = [
-            [
-                'origin' => $this->options['origin_server'],
-                'port' => 80,
-                'weight' => 10,
-                'role' => 'master',
-            ]
+        // 要创建的参数
+        $createData = [
+            'domain' => $domain,
+            'origin' => [
+                [
+                    'origin' => $this->options['origin_server'],
+                    'port' => 80,
+                    'weight' => 10,
+                    'role' => 'master',
+                ]
+            ],
         ];
+
+        // IP限频
+        if($this->options['access_limit'] > 0){
+            $createData['entry_limits'] = [
+                [
+                    'id' => 'entry_condition_all',
+                    'limit_element' => 'entry_limits',
+                    'frequency_threshold' => $this->options['access_limit'],
+                    'frequency_time_range' => 1,
+                    'forbidden_duration' => 900,
+                    'priority' => 10,
+                ],
+            ];
+            $createData['entry_limits_condition'] = [
+                'entry_condition_all' => [
+                    [
+                        'mode' => 3,
+                        'content' => '/',
+                    ],
+                ],
+            ];
+        }
+        // 缓存配置
+        if(!empty($this->options['cache_rules'])){
+            $createData['filetype_ttl'] = $this->options['cache_rules'];
+        }
+        // 回源请求头配置
+        if(!empty($this->options['request_header'])){
+            // 回源请求头规则
+            $requestHeaderRules = [];
+            foreach($this->options['request_header'] as $headerName => $headerValue){
+                $requestHeaderRules[] = [
+                    'key' => $headerName,
+                    'value' => $headerValue,
+                ];
+            }
+            $createData['req_headers'] = $requestHeaderRules;
+        }
+        // IP黑名单配置
+        if(!empty($this->options['black_ip'])){
+            // 规则去重
+            $ipList = array_unique($this->options['black_ip']);
+            $createData['ip_black_list'] = implode(',', $ipList);
+        }
+        // UA黑名单配置
+        if(!empty($this->options['black_ua'])){
+            // 规则去重
+            $uaList = array_unique($this->options['black_ua']);
+            $createData['user_agent'] = [
+                'type' => 0,
+                'ua' => $uaList,
+            ];
+        }
 
         // 获取响应
         try{
-            $response = $this->handler->domainManage($domain, $origin);
+            $response = $this->handler->domainManage($createData);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
         // 如果返回成功
         if($response['code'] == 100000){
-            // 要设置的参数
-            $updateData = [];
-            // IP限频
-            if($this->options['access_limit'] > 0){
-                $updateData['entry_limits'] = [
-                    [
-                        'id' => 'entry_condition_all',
-                        'limit_element' => 'entry_limits',
-                        'frequency_threshold' => $this->options['access_limit'],
-                        'frequency_time_range' => 1,
-                        'forbidden_duration' => 900,
-                        'priority' => 10,
-                    ],
-                ];
-                $updateData['entry_limits_condition'] = [
-                    'entry_condition_all' => [
-                        [
-                            'mode' => 3,
-                            'content' => '/',
-                        ],
-                    ],
-                ];
-            }
-            // 缓存配置
-            if(!empty($this->options['cache_rules'])){
-                $updateData['filetype_ttl'] = $this->options['cache_rules'];
-            }
-            // 回源请求头配置
-            if(!empty($this->options['request_header'])){
-                // 回源请求头规则
-                $requestHeaderRules = [];
-                foreach($this->options['request_header'] as $headerName => $headerValue){
-                    $requestHeaderRules[] = [
-                        'key' => $headerName,
-                        'value' => $headerValue,
-                    ];
-                }
-                $updateData['req_headers'] = $requestHeaderRules;
-            }
-            // IP黑名单配置
-            if(!empty($this->options['black_ip'])){
-                // 规则去重
-                $ipList = array_unique($this->options['black_ip']);
-                $updateData['ip_black_list'] = implode(',', $ipList);
-            }
-            // UA黑名单配置
-            if(!empty($this->options['black_ua'])){
-                // 规则去重
-                $uaList = array_unique($this->options['black_ua']);
-                $updateData['user_agent'] = [
-                    'type' => 0,
-                    'ua' => $uaList,
-                ];
-            }
-
-            /*/ 不能直接更新配置
-            if(!empty($updateData)){
-                $this->handler->domainIncreUpdate($domain, $updateData);
-            }
-            //*/
             // 返回成功
             return ['操作成功', null];
         }

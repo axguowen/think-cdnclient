@@ -52,6 +52,8 @@ class TencentCloud extends Platform
         'origin_server' => '',
         // 回源HOST
         'origin_host' => '',
+        // 回源请求头
+        'request_header'=> [],
         // 缓存规则
         'cache_rules' => [],
         // 默认IP限频
