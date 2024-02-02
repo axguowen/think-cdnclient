@@ -82,6 +82,7 @@ class Ctyun extends Platform
                     'role' => 'master',
                 ]
             ],
+            'req_host' => $this->options['origin_host'],
         ];
 
         // IP限频
