@@ -382,6 +382,8 @@ class TencentCloud extends Platform
         $ipList = array_filter($ipList, function($value) {
             return !empty($value);
         });
+        // 获取全部值
+        $ipList = array_values($ipList);
         // IP列表不为空
         if(!empty($ipList)){
             $ipFilter = [

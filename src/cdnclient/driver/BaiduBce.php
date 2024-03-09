@@ -294,6 +294,8 @@ class BaiduBce extends Platform
         $ipList = array_filter($ipList, function($value) {
             return !empty($value);
         });
+        // 获取全部值
+        $ipList = array_values($ipList);
 
         // 获取响应
         try{
