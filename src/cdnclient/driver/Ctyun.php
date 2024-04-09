@@ -476,7 +476,7 @@ class Ctyun extends Platform
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
             // 删除证书
-            $this->handler->certDelete($domain);
+            // $this->handler->certDelete($domain);
             // 创建证书
             $response = $this->handler->certCreate($domain, $certificate['cert_private'], $certificate['cert_public']);
             // 如果返回失败
@@ -515,7 +515,7 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
-            $response = $this->handler->domainQueryDomainCertInfo($domain);
+            $response = $this->handler->certQuery(null, $domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
@@ -528,11 +528,11 @@ class Ctyun extends Platform
         // 返回成功
         return [[
             // 证书名称
-            'cert_name' => $response['name'],
+            'cert_name' => $response['result']['name'],
             // 到期时间
-            'expire_time' => $response['expires'],
+            'expire_time' => $response['result']['expires'],
             // 部署时间
-            'deploy_time' => $response['created'],
+            'deploy_time' => $response['result']['created'],
         ], null];
     }
 
@@ -558,16 +558,27 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
-            // 更新域名配置关闭HTTPS
-            $response = $this->handler->domainIncreUpdate($domain, [
-                'https_status' => 'off',
-                'cert_name' => '',
-            ]);
+            // 查询域名配置
+            $response = $this->handler->domainInfo($domain);
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
                 return [null, new \Exception($response['message'], $response['code'])];
             }
+            // 如果开启了HTTPS
+            if(isset($response['https_status']) && 'on' === $response['https_status']){
+                // 更新域名配置关闭HTTPS
+                $response = $this->handler->domainIncreUpdate($domain, [
+                    'https_status' => 'off',
+                    'cert_name' => '',
+                ]);
+                // 如果返回失败
+                if($response['code'] != 100000){
+                    // 返回错误
+                    return [null, new \Exception($response['message'], $response['code'])];
+                }
+            }
+            
             // 删除证书
             $response = $this->handler->certDelete($domain);
             // 如果返回成功
