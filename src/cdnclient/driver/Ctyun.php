@@ -273,14 +273,14 @@ class Ctyun extends Platform
             // 如果存在在途工单
             if(true === $response['is_exist']){
                 // 返回无需验证
-                return [null, new \Exception('域名已添加无需验证')];
+                return ['域名所有权验证通过', null];
             }
             // 没有在途工单则尝试获取域名信息
             $response = $this->handler->domainInfo($domain);
             // 存在域名信息则无需验证
             if($response['code'] == 100000){
                 // 返回无需验证
-                return [null, new \Exception('域名已添加无需验证')];
+                return ['域名所有权验证通过', null];
             }
 
             // 不存在域名则获取验证信息核对是否已经通过验证
@@ -293,7 +293,7 @@ class Ctyun extends Platform
             // 如果无需验证
             if(true === $response['verify_result']){
                 // 返回无需验证
-                return [null, new \Exception('域名已添加无需验证')];
+                return ['域名所有权验证通过', null];
             }
 
             // 需要验证则开始验证
