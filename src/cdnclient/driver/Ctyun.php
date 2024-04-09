@@ -558,18 +558,18 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
-            // 删除证书
-            $response = $this->handler->certDelete($domain);
-            // 如果返回失败
-            if($response['code'] != 100000){
-                // 返回错误
-                return [null, new \Exception($response['message'], $response['code'])];
-            }
             // 更新域名配置
             $response = $this->handler->domainIncreUpdate($domain, [
                 'https_status' => 'off',
                 'cert_name' => '',
             ]);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'], $response['code'])];
+            }
+            // 删除证书
+            $response = $this->handler->certDelete($domain);
             // 如果返回成功
             if($response['code'] == 100000){
                 // 返回成功
