@@ -558,7 +558,7 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
-            // 更新域名配置
+            // 更新域名配置关闭HTTPS
             $response = $this->handler->domainIncreUpdate($domain, [
                 'https_status' => 'off',
                 'cert_name' => '',
