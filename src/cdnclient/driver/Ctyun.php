@@ -309,7 +309,7 @@ class Ctyun extends Platform
                 return ['域名所有权验证通过', null];
             }
             // 返回错误
-            return [null, new \Exception('域名未通过所有权验证')];
+            return [null, new \Exception('域名未通过TXT所有权验证，请与域名解析人员核对')];
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
