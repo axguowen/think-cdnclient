@@ -92,6 +92,14 @@ interface PlatformInterface
 	public function deleteCertificate(string $domain);
 
     /**
+	 * 删除域名证书
+	 * @access public
+	 * @param string $certName
+	 * @return array
+	 */
+	public function destroyCertificate(string $certName);
+
+    /**
 	 * 启用加速域名
 	 * @access public
 	 * @param string $domain

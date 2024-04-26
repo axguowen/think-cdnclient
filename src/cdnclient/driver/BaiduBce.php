@@ -441,6 +441,17 @@ class BaiduBce extends Platform
     }
 
     /**
+	 * 注销域名证书
+	 * @access public
+	 * @param string $certName
+	 * @return array
+	 */
+	public function destroyCertificate(string $certName)
+    {
+        return [null, new \Exception('当前平台不支持该操作')];
+    }
+
+    /**
 	 * 启用加速域名
 	 * @access public
 	 * @param string $domain
