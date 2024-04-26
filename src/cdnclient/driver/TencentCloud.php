@@ -507,6 +507,14 @@ class TencentCloud extends Platform
 	 */
 	public function setCertificate(string $domain, array $certificate)
     {
+        // 构造证书名称
+        $certName = $domain;
+        // 如果指定了证书名称
+        if(isset($certificate['cert_name']) && !empty($certificate['cert_name'])){
+            // 获取证书名称
+            $certName = $certificate['cert_name'];
+        }
+        
         // 请求对象
         $request = new UpdateDomainConfigRequest();
         $request->Domain = $domain;
@@ -514,7 +522,7 @@ class TencentCloud extends Platform
             'Switch' => 'on',
             'CertInfo' => [
                 // 证书名称
-                'CertName' => $certificate['cert_name'],
+                'CertName' => $certName,
                 // 证书公钥
                 'Certificate' => $certificate['cert_public'],
                 // 证书私钥
@@ -607,7 +615,7 @@ class TencentCloud extends Platform
         $request = new UpdateDomainConfigRequest();
         $request->Domain = $domain;
         $request->Https = [
-            'Switch' => 'on',
+            'Switch' => 'off',
         ];
 
         try{

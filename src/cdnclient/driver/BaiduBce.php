@@ -356,9 +356,16 @@ class BaiduBce extends Platform
     {
         // 获取响应
         try{
+            // 构造证书名称
+            $certName = $domain;
+            // 如果指定了证书名称
+            if(isset($certificate['cert_name']) && !empty($certificate['cert_name'])){
+                // 获取证书名称
+                $certName = $certificate['cert_name'];
+            }
             $response = $this->handler->setCertificate($domain, [
                 // 证书名称
-                'certName' => $certificate['cert_name'],
+                'certName' => $certName,
                 // 证书公钥
                 'certServerData' => $certificate['cert_public'],
                 // 证书私钥

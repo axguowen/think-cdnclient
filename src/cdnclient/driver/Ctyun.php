@@ -476,9 +476,12 @@ class Ctyun extends Platform
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
             // 构造证书名称
-            $certName = $domain . '_' . date('YmdHis');
-            // 删除证书
-            // $this->handler->certDelete($domain);
+            $certName = $domain;
+            // 如果指定了证书名称
+            if(isset($certificate['cert_name']) && !empty($certificate['cert_name'])){
+                // 获取证书名称
+                $certName = $certificate['cert_name'];
+            }
             // 创建证书
             $response = $this->handler->certCreate($certName, $certificate['cert_private'], $certificate['cert_public']);
             // 如果返回失败
@@ -567,22 +570,36 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception($response['message'], $response['code'])];
             }
-            // 如果开启了HTTPS
-            if(isset($response['https_status']) && 'on' === $response['https_status']){
-                // 更新域名配置关闭HTTPS
-                $response = $this->handler->domainIncreUpdate($domain, [
-                    'https_status' => 'off',
-                    'cert_name' => '',
-                ]);
-                // 如果返回失败
-                if($response['code'] != 100000){
-                    // 返回错误
-                    return [null, new \Exception($response['message'], $response['code'])];
-                }
+            // 更新域名配置关闭HTTPS
+            $response = $this->handler->domainIncreUpdate($domain, [
+                'https_status' => 'off',
+                'cert_name' => '',
+            ]);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
             }
-            
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+    }
+
+    /**
+	 * 注销域名证书
+	 * @access public
+	 * @param string $certName
+	 * @return array
+	 */
+	public function destroyCertificate(string $certName)
+    {
+        // 获取响应
+        try{
             // 删除证书
-            $response = $this->handler->certDelete($domain);
+            $response = $this->handler->certDelete($certName);
             // 如果返回成功
             if($response['code'] == 100000){
                 // 返回成功
