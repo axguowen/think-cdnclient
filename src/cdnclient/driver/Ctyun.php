@@ -475,10 +475,12 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
+            // 构造证书名称
+            $certName = $domain . '_' . date('YmdHis');
             // 删除证书
             // $this->handler->certDelete($domain);
             // 创建证书
-            $response = $this->handler->certCreate($domain, $certificate['cert_private'], $certificate['cert_public']);
+            $response = $this->handler->certCreate($certName, $certificate['cert_private'], $certificate['cert_public']);
             // 如果返回失败
             if($response['code'] != 100000){
                 // 返回错误
@@ -488,7 +490,7 @@ class Ctyun extends Platform
             // 更新域名配置
             $response = $this->handler->domainIncreUpdate($domain, [
                 'https_status' => 'on',
-                'cert_name' => $domain,
+                'cert_name' => $certName,
             ]);
 
             // 如果返回成功
