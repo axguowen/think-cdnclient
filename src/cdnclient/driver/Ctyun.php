@@ -570,13 +570,21 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception($response['message'], $response['code'])];
             }
-            // 更新域名配置关闭HTTPS
-            $response = $this->handler->domainIncreUpdate($domain, [
-                'https_status' => 'off',
-                'cert_name' => '',
-            ]);
-            // 如果返回成功
-            if($response['code'] == 100000){
+            // 如果开启了HTTPS
+            if(isset($response['https_status'])){
+                // 如果开启了HTTPS
+                if('on' === $response['https_status']){
+                    // 更新域名配置关闭HTTPS
+                    $response = $this->handler->domainIncreUpdate($domain, [
+                        'https_status' => 'off',
+                        'cert_name' => '',
+                    ]);
+                    // 如果返回失败
+                    if($response['code'] != 100000){
+                        // 返回错误
+                        return [null, new \Exception($response['message'])];
+                    }
+                }
                 // 返回成功
                 return ['操作成功', null];
             }
