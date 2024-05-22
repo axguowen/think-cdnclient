@@ -683,7 +683,7 @@ class Ctyun extends Platform
             // 开始更新
             $response = $this->handler->domainChangeStatus($domain, 2);
             // 如果返回成功
-            if($response['code'] == 100000 || $response['message'] == '请求参数域名校验失败，当前用户对域名' . $url . '无权限'){
+            if($response['code'] == 100000 || $response['message'] == '请求参数域名校验失败，当前用户对域名' . $domain . '无权限'){
                 // 返回成功
                 return ['操作成功', null];
             }
