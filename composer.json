@@ -27,7 +27,7 @@
     "extra": {
         "think": {
             "config": {
-                "cdnclient": "src/config.php"
+                "cdnclient": "src/cdnclient/config.php"
             }
         }
     }
