@@ -1013,4 +1013,32 @@ class Ctyun extends Platform
             ]
         ], null];
     }
+
+    /**
+     * 查询域名是否存在
+     * @access public
+     * @param string $domain
+     * @return array
+     */
+    public function isExist(array $domain)
+    {
+        // 获取响应
+        try{
+            $response = $this->handler->domainQuery(['domain' => $domain]);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回成功
+        if($response['code'] == 100000){
+            $exist = false;
+            if(isset($response['result']['total']) && $response['result']['total'] > 0){
+                $exist = true;
+            }
+            // 返回成功
+            return [['exist' => $exist], null];
+        }
+        // 返回错误
+        return [null, new \Exception($response['message'])];
+    }
 }
