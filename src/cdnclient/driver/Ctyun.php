@@ -1032,7 +1032,7 @@ class Ctyun extends Platform
         // 如果返回成功
         if($response['code'] == 100000){
             $exist = false;
-            if(isset($response['result']['total']) && $response['result']['total'] > 0){
+            if(isset($response['total']) && $response['total'] > 0){
                 $exist = true;
             }
             // 返回成功
