@@ -1020,7 +1020,7 @@ class Ctyun extends Platform
      * @param string $domain
      * @return array
      */
-    public function isExist(array $domain)
+    public function isExist($domain)
     {
         // 获取响应
         try{
