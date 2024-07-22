@@ -768,9 +768,10 @@ class Ctyun extends Platform
 	 * @access public
 	 * @param string $domain
 	 * @param int $qps
+	 * @param int $timeRange
 	 * @return array
 	 */
-	public function setAccessLimit(string $domain, int $qps = 0)
+	public function setAccessLimit(string $domain, int $qps = 0, int $timeRange = 1)
     {
         // 获取响应
         try{
@@ -786,27 +787,36 @@ class Ctyun extends Platform
                 // 返回错误
                 return [null, new \Exception('域名配置中, 请5分钟后再试')];
             }
-            // 开始更新
-            $response = $this->handler->domainIncreUpdate($domain, [
-                'entry_limits' => [
-                    [
-                        'id' => 'entry_condition_all',
-                        'limit_element' => 'entry_limits',
-                        'frequency_threshold' => $qps,
-                        'frequency_time_range' => 1,
-                        'forbidden_duration' => 900,
-                        'priority' => 10,
-                    ]
-                ],
-                'entry_limits_condition' => [
-                    'entry_condition_all' => [
+            // 默认传空数据
+            $data = [
+                'entry_limits' => [],
+                'entry_limits_condition' => [],
+            ];
+            // 如果qps大于0
+            if($qps > 0){
+                $data = [
+                    'entry_limits' => [
                         [
-                            'mode' => 3,
-                            'content' => '/',
-                        ]
-                    ]
-                ],
-            ]);
+                            'id' => 'entry_condition_all',
+                            'limit_element' => 'entry_limits',
+                            'frequency_threshold' => $qps,
+                            'frequency_time_range' => $timeRange,
+                            'forbidden_duration' => 900,
+                            'priority' => 10,
+                        ],
+                    ],
+                    'entry_limits_condition' => [
+                        'entry_condition_all' => [
+                            [
+                                'mode' => 3,
+                                'content' => '/',
+                            ],
+                        ],
+                    ],
+                ];
+            }
+            // 开始更新
+            $response = $this->handler->domainIncreUpdate($domain, $data);
             // 如果返回成功
             if($response['code'] == 100000){
                 // 返回成功

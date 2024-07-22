@@ -744,9 +744,10 @@ class TencentCloud extends Platform
 	 * @access public
 	 * @param string $domain
 	 * @param int $qps
+	 * @param int $timeRange
 	 * @return array
 	 */
-	public function setAccessLimit(string $domain, int $qps = 0)
+	public function setAccessLimit(string $domain, int $qps = 0, int $timeRange = 1)
     {
         // 限频参数
         $ipFreqLimit = [
