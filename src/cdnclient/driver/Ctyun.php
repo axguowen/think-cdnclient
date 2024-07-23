@@ -41,7 +41,9 @@ class Ctyun extends Platform
         // 缓存规则
         'cache_rules' => [],
         // 默认IP限频
-        'access_limit' => 0,
+        'frequency_threshold'  => 0,
+        // 限频统计周期单位秒
+        'frequency_time_range' => 1,
         // IP黑名单
         'black_ip' => [],
         // UA黑名单
@@ -86,13 +88,13 @@ class Ctyun extends Platform
         ];
 
         // IP限频
-        if($this->options['access_limit'] > 0){
+        if($this->options['frequency_threshold'] > 0){
             $createData['entry_limits'] = [
                 [
                     'id' => 'entry_condition_all',
-                    'limit_element' => 'entry_limits',
-                    'frequency_threshold' => $this->options['access_limit'],
-                    'frequency_time_range' => 1,
+                    'limit_element' => 'remote_addr=$remote_addr',
+                    'frequency_threshold' => $this->options['frequency_threshold'],
+                    'frequency_time_range' => $this->options['frequency_time_range'],
                     'forbidden_duration' => 900,
                     'priority' => 10,
                 ],
@@ -798,7 +800,7 @@ class Ctyun extends Platform
                     'entry_limits' => [
                         [
                             'id' => 'entry_condition_all',
-                            'limit_element' => 'entry_limits',
+                            'limit_element' => 'remote_addr=$remote_addr',
                             'frequency_threshold' => $qps,
                             'frequency_time_range' => $timeRange,
                             'forbidden_duration' => 900,

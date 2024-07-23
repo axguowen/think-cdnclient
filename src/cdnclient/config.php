@@ -122,7 +122,9 @@ return [
                 ],
             ],
             // 默认IP限频
-            'access_limit'  => 0,
+            'frequency_threshold'  => 0,
+            // 限频统计周期单位秒
+            'frequency_time_range' => 1,
             // IP黑名单
             'black_ip'      => [],
             // UA黑名单
