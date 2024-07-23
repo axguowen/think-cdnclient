@@ -792,7 +792,7 @@ class Ctyun extends Platform
             // 默认传空数据
             $data = [
                 'entry_limits' => [],
-                'entry_limits_condition' => [],
+                'entry_limits_condition' => (object) [],
             ];
             // 如果qps大于0
             if($qps > 0){
