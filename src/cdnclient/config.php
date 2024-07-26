@@ -125,6 +125,8 @@ return [
             'frequency_threshold'  => 0,
             // 限频统计周期单位秒
             'frequency_time_range' => 1,
+            // 限频白名单IP
+            'entry_limits_white_ip' => [],
             // IP黑名单
             'black_ip'      => [],
             // UA黑名单

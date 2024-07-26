@@ -44,6 +44,8 @@ class Ctyun extends Platform
         'frequency_threshold'  => 0,
         // 限频统计周期单位秒
         'frequency_time_range' => 1,
+        // 限频白名单IP
+        'entry_limits_white_ip' => [],
         // IP黑名单
         'black_ip' => [],
         // UA黑名单
@@ -97,6 +99,7 @@ class Ctyun extends Platform
                     'frequency_time_range' => $this->options['frequency_time_range'],
                     'forbidden_duration' => 900,
                     'priority' => 10,
+                    'white_ip_control' => $this->options['entry_limits_white_ip'],
                 ],
             ];
             $createData['entry_limits_condition'] = [
@@ -805,6 +808,7 @@ class Ctyun extends Platform
                             'frequency_time_range' => $timeRange,
                             'forbidden_duration' => 900,
                             'priority' => 10,
+                            'white_ip_control' => $this->options['entry_limits_white_ip'],
                         ],
                     ],
                     'entry_limits_condition' => [
