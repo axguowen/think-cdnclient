@@ -930,7 +930,7 @@ class Ctyun extends Platform
 
         // 获取响应
         try{
-            $response = $this->handler->refreshManageCreate($urls, 2);
+            $response = $this->handler->refreshManageCreate($paths, 2);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
