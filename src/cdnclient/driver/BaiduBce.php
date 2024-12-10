@@ -774,7 +774,7 @@ class BaiduBce extends Platform
             // 返回错误
             return [null, new \Exception($response->message)];
         }
-        $status = $checkStatusResult->IcpStatus == 'true' ? 1 : 0;
+        $status = $response->IcpStatus == 'true' ? 1 : 0;
         // 返回成功
         return [['status' => $status], null];
     }
