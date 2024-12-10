@@ -753,4 +753,29 @@ class BaiduBce extends Platform
             ]
         ], null];
     }
+
+    /**
+	 * 查询域名是否备案
+	 * @access public
+	 * @param string $domain
+	 * @return array
+	 */
+	public function checkDomainICP($domain)
+    {
+        // 获取响应
+        try{
+            $response = $this->handler->checkDomainICP($domain);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果请求状态码为200
+        if($response->statuscode != 200){
+            // 返回错误
+            return [null, new \Exception($response->message)];
+        }
+        $status = $checkStatusResult->IcpStatus == 'true' ? 1 : 0;
+        // 返回成功
+        return [['status' => $status], null];
+    }
 }
