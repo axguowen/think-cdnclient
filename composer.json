@@ -17,7 +17,8 @@
         "topthink/framework": "^6.1",
         "axguowen/baidubce-cdn": "^2.0",
         "axguowen/ctyun-cdn": "^1.0",
-        "tencentcloud/cdn": "^3.0"
+        "tencentcloud/cdn": "^3.0",
+        "alibabacloud/cdn-20180510": "^4.2"
     },
     "autoload": {
         "psr-4": {

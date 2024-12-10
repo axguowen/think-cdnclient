@@ -132,6 +132,21 @@ return [
             // UA黑名单
             'black_ua'      => [],
         ],
+        // 阿里云
+        'aliyun' => [
+            // 驱动类型
+            'type'          => 'Aliyun',
+            // accessKeyId
+            'access_id'     => '',
+            // accessKeySecret
+            'access_secret' => '',
+            // 服务接入地域
+            'endpoint'      => '',
+            // 源站地址
+            'origin_server' => '',
+            // 回源HOST
+            'origin_host'   => '',
+        ],
         // 其它
         'other' => [
             // 驱动类型
