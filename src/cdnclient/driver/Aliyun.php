@@ -284,7 +284,7 @@ class Aliyun extends Platform
             // 响应
             $response = $this->handler->checkCdnDomainICP($request);
             // 备案状态
-            $status = $response->Body->Status == 'DomainIsRegistration' ? 1 : 0;
+            $status = $response->body->status == 'DomainIsRegistration' ? 1 : 0;
             // 返回
             return [['status' => $status], null];
         } catch (\Exception $e) {
