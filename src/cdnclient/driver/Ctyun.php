@@ -1040,21 +1040,72 @@ class Ctyun extends Platform
     {
         // 获取响应
         try{
-            $response = $this->handler->domainQuery(['domain' => $domain]);
+            $response = $this->handler->domainInfo($domain);
         } catch (\Exception $e) {
             // 返回错误
             return [null, $e];
         }
+        $exist = false;
         // 如果返回成功
         if($response['code'] == 100000){
-            $exist = false;
-            if(isset($response['total']) && $response['total'] > 0){
-                $exist = true;
-            }
-            // 返回成功
-            return [['exist' => $exist], null];
+            $exist = true;
         }
-        // 返回错误
-        return [null, new \Exception($response['message'])];
+        // 返回成功
+        return [['exist' => $exist], null];
+    }
+
+    /**
+     * 查询域名配置信息
+     * @access public
+     * @param string $domain
+     * @return array
+     */
+    public function getDomainInfo($domain)
+    {
+        // 获取响应
+        try{
+            $response = $this->handler->domainInfo($domain);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回失败
+        if($response['code'] != 100000){
+            // 返回错误
+            return [null, new \Exception($response['message'], $response['code'])];
+        }
+        // 返回成功
+        return [$response, null];
+    }
+
+    /**
+     * 查询域名配置状态
+     * @access public
+     * @param string $domain
+     * @return array
+     */
+    public function getDomainStatus($domain)
+    {
+        // 获取响应
+        try{
+            $response = $this->handler->domainInfo($domain);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果返回失败
+        if($response['code'] != 100000){
+            // 返回错误
+            return [null, new \Exception($response['message'], $response['code'])];
+        }
+        // 默认停止状态
+        $status = 0;
+        // 如果状态为启用
+        if($response['status'] == 4){
+            // 设置为启用状态
+            $status = 1;
+        }
+        // 返回成功
+        return [['status' => $status], null];
     }
 }
