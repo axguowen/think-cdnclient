@@ -1029,7 +1029,7 @@ class TencentCloud extends Platform
             // 响应
             $response = $this->handler->DescribeDomains($request);
             // 如果数量大于0
-            if(count($response->TotalNumber) > 0){
+            if($response->TotalNumber > 0){
                 $exist = true;
             }
         } catch (\Exception $e) {
