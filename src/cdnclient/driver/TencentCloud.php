@@ -1011,4 +1011,32 @@ class TencentCloud extends Platform
             ]
         ], null];
     }
+
+    /**
+     * 查询域名是否存在
+     * @access public
+     * @param string $domain
+     * @return array
+     */
+    public function isExist($domain)
+    {
+        // 存在状态
+        $exist = false;
+        // 请求对象
+        $request = new DescribeDomainsRequest();
+        $request->Filters = [['Name' => 'domain', 'Value' => [$domain]]];
+        try{
+            // 响应
+            $response = $this->handler->DescribeDomains($request);
+            // 如果数量大于0
+            if(count($response->TotalNumber) > 0){
+                $exist = true;
+            }
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 返回成功
+        return [['exist' => $exist], null];
+    }
 }

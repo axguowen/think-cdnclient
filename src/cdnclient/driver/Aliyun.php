@@ -13,6 +13,7 @@ namespace think\cdnclient\driver;
 
 use think\cdnclient\Platform;
 use AlibabaCloud\SDK\Cdn\V20180510\Cdn;
+use AlibabaCloud\SDK\Cdn\V20180510\Models\DescribeCdnDomainDetailRequest;
 use AlibabaCloud\SDK\Cdn\V20180510\Models\CheckCdnDomainICPRequest;
 
 class Aliyun extends Platform
@@ -291,5 +292,32 @@ class Aliyun extends Platform
             // 返回错误
             return [null, $e];
         }
+    }
+
+    /**
+     * 查询域名是否存在
+     * @access public
+     * @param string $domain
+     * @return array
+     */
+    public function isExist($domain)
+    {
+        // 存在状态
+        $exist = false;
+        // 请求对象
+        $request = new DescribeCdnDomainDetailRequest();
+        $request->domainName = $domain;
+        try{
+            // 响应
+            $response = $this->handler->DescribeCdnDomainDetail($request);
+            $exist = true;
+        } catch (\Exception $e) {
+            if($e->getCode() != 'InvalidDomain.NotFound') {
+                // 返回错误
+                return [null, $e];
+            }
+        }
+        // 返回成功
+        return [['exist' => $exist], null];
     }
 }

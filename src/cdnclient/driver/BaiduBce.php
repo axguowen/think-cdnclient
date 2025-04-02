@@ -755,6 +755,30 @@ class BaiduBce extends Platform
     }
 
     /**
+     * 查询域名是否存在
+     * @access public
+     * @param string $domain
+     * @return array
+     */
+    public function isExist($domain)
+    {
+        $exist = false;
+        // 获取响应
+        try{
+            $response = $this->handler->getDomainConfig($domain);
+            $exist = true;
+        } catch (\Exception $e) {
+            // 如果不是404
+            if($e->getCode() != 404){
+                // 返回错误
+                return [null, $e];
+            }
+        }
+        // 返回成功
+        return [['exist' => $exist], null];
+    }
+
+    /**
 	 * 查询域名是否备案
 	 * @access public
 	 * @param string $domain
