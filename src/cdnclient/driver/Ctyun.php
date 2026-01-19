@@ -43,7 +43,9 @@ class Ctyun extends Platform
         // 默认IP限频
         'frequency_threshold'  => 0,
         // 限频统计周期单位秒
-        'frequency_time_range' => 1,
+        'frequency_time_range' => 60,
+        // 触发限频后禁止访问时间单位秒
+        'forbidden_duration' => 86400,
         // 限频白名单IP
         'entry_limits_white_ip' => [],
         // IP黑名单
@@ -97,7 +99,7 @@ class Ctyun extends Platform
                     'limit_element' => 'remote_addr=$remote_addr',
                     'frequency_threshold' => $this->options['frequency_threshold'],
                     'frequency_time_range' => $this->options['frequency_time_range'],
-                    'forbidden_duration' => 900,
+                    'forbidden_duration' => $this->options['forbidden_duration'],
                     'priority' => 10,
                     'white_ip_control' => $this->options['entry_limits_white_ip'],
                 ],
@@ -806,7 +808,7 @@ class Ctyun extends Platform
                             'limit_element' => 'remote_addr=$remote_addr',
                             'frequency_threshold' => $qps,
                             'frequency_time_range' => $timeRange,
-                            'forbidden_duration' => 900,
+                            'forbidden_duration' => $this->options['forbidden_duration'],
                             'priority' => 10,
                             'white_ip_control' => $this->options['entry_limits_white_ip'],
                         ],
