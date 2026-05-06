@@ -1033,6 +1033,117 @@ class Ctyun extends Platform
     }
 
     /**
+	 * 文件预取
+	 * @access public
+	 * @param array|string $urls
+	 * @return array
+	 */
+	public function preloadUrls($urls)
+    {
+        // 如果不是数组则分隔
+        if(!is_array($urls)){
+            $urls = explode(',', $urls);
+        }
+
+        // 获取响应
+        try{
+            $response = $this->handler->preloadManageCreate($urls);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果请求状态码为200
+        if($response['code'] == 100000){
+            // 获取响应结果
+            $result = $response['result'][0];
+            // 返回成功
+            return [['task_id' => $result['task_id']], null];
+        }
+        // 返回错误
+        return [null, new \Exception($response['message'])];
+    }
+
+    /**
+	 * 查询文件预取状态
+	 * @access public
+	 * @param string $taskId
+	 * @return array
+	 */
+	public function getPreloadStatus($taskId)
+    {
+        // 获取响应
+        try{
+            $response = $this->handler->preloadManageQuery([
+                'type' => 2,
+                'task_id' => $taskId,
+                'page_size' => 1,
+            ]);
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果请求状态码为200
+        if($response['code'] != 100000){
+            // 返回错误
+            return [null, new \Exception($response['message'], $response['code'])];
+        }
+        // 获取刷新任务详情
+        $purgeTask = $response['result'][0];
+        // 返回信息
+        $status_code = '';
+        $status_text = '';
+        switch($purgeTask['status']) {
+            case 'processing':
+                $status_code = 'processing';
+                $status_text = '预取中';
+                break;
+            case 'completed':
+                $status_code = 'completed';
+                $status_text = '预取完成';
+                break;
+            case 'failed':
+                $status_code = 'failed';
+                $status_text = '预取失败';
+                break;
+        }
+        // 返回成功
+        return [[
+            'status_code' => $status_code,
+            'status_text' => $status_text,
+        ], null];
+    }
+
+    /**
+	 * 查询文件预取限额
+	 * @access public
+	 * @return array
+	 */
+	public function getPreloadQuota()
+    {
+        // 获取响应
+        try{
+            $response = $this->handler->preloadManageQuota();
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+        // 如果请求状态码为200
+        if($response['code'] != 100000){
+            // 返回错误
+            return [null, new \Exception($response['message'], $response['code'])];
+        }
+        // 获取限额数据
+        $purgeQuota = $response['result']['quotas'][0];
+        // 返回成功
+        return [[
+            'quotas' => [
+                'total' => $purgeQuota['max'],
+                'remain' => $purgeQuota['surplus'],
+            ]
+        ], null];
+    }
+
+    /**
      * 查询域名是否存在
      * @access public
      * @param string $domain
