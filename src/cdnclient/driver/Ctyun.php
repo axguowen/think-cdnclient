@@ -52,6 +52,8 @@ class Ctyun extends Platform
         'black_ip' => [],
         // UA黑名单
         'black_ua' => [],
+        // IPV6是否开启
+        'ipv6_enable'   => 1,
     ];
     
     /**
@@ -89,6 +91,7 @@ class Ctyun extends Platform
                 ]
             ],
             'req_host' => $this->options['origin_host'],
+            'ipv6_enable' => $this->options['ipv6_enable'],
         ];
 
         // IP限频
