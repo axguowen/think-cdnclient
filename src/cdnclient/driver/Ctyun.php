@@ -840,6 +840,48 @@ class Ctyun extends Platform
             return [null, $e];
         }
     }
+
+    /**
+	 * 设置IPv6访问
+	 * @access public
+	 * @param string $domain
+	 * @param int $enable (1:开启 2:关闭)
+	 * @return array
+	 */
+	public function setIpv6Access(string $domain, int $enable = 1)
+    {
+        // 获取响应
+        try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'], $response['code'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 默认传空数据
+            $data = [
+                'ipv6_enable' => $enable,
+            ];
+            // 开始更新
+            $response = $this->handler->domainIncreUpdate($domain, $data);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+    }
     
     /**
 	 * 设置回源请求头

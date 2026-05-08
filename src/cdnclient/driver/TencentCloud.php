@@ -783,6 +783,18 @@ class TencentCloud extends Platform
     }
 
     /**
+	 * 设置IPv6访问
+	 * @access public
+	 * @param string $domain
+	 * @param int $enable (1:开启 2:关闭)
+	 * @return array
+	 */
+	public function setIpv6Access(string $domain, int $enable = 1)
+    {
+        return [null, new \Exception('当前平台不支持该操作')];
+    }
+
+    /**
 	 * 设置回源请求头
 	 * @access public
 	 * @param string $domain
