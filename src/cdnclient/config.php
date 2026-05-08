@@ -131,8 +131,8 @@ return [
             'black_ip'      => [],
             // UA黑名单
             'black_ua'      => [],
-            // IPV6是否开启
-            'ipv6_enable'   => 0,
+            // IPV6是否开启 (1:开启 2:关闭)
+            'ipv6_enable'   => 1,
         ],
         // 阿里云
         'aliyun' => [
