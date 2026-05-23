@@ -133,6 +133,8 @@ return [
             'black_ua'      => [],
             // IPV6是否开启 (1:开启 2:关闭)
             'ipv6_enable'   => 1,
+            // 回源URI改写规则
+            'backorigin_uri_rewrite' => [],
         ],
         // 阿里云
         'aliyun' => [

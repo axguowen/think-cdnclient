@@ -54,6 +54,8 @@ class Ctyun extends Platform
         'black_ua' => [],
         // IPV6是否开启 (1:开启 2:关闭)
         'ipv6_enable'   => 1,
+        // 回源URI改写规则
+        'backorigin_uri_rewrite' => [],
     ];
     
     /**
@@ -146,6 +148,33 @@ class Ctyun extends Platform
                 'type' => 0,
                 'ua' => $uaList,
             ];
+        }
+        // 回源URI改写配置
+        if(!empty($this->options['backorigin_uri_rewrite'])){
+            // 回源URI改写规则
+            $uriRewriteRules = [];
+            // 当前时间
+            $requestTime = time();
+            // 遍历
+            foreach($this->options['backorigin_uri_rewrite'] as $key => $item){
+                // 如果不是数组
+                if(!is_array($item)){
+                    continue;
+                }
+                // 如果未指定pattern
+                if(!isset($item['pattern'])){
+                    continue;
+                }
+                // 指定ID
+                $item['id'] = $requestTime . $key . mt_rand(1000, 9999);
+                // 赋值到回源URI改写规则
+                $uriRewriteRules[] = $item;
+            }
+            // 如果规则不为空
+            if(!empty($uriRewriteRules)){
+                // 传入参数
+                $createData['backorigin_uri_rewrite'] = $uriRewriteRules;
+            }
         }
 
         // 获取响应
@@ -868,6 +897,68 @@ class Ctyun extends Platform
             $data = [
                 'ipv6_enable' => $enable,
             ];
+            // 开始更新
+            $response = $this->handler->domainIncreUpdate($domain, $data);
+            // 如果返回成功
+            if($response['code'] == 100000){
+                // 返回成功
+                return ['操作成功', null];
+            }
+            // 返回错误
+            return [null, new \Exception($response['message'])];
+        } catch (\Exception $e) {
+            // 返回错误
+            return [null, $e];
+        }
+    }
+
+    /**
+	 * 设置回源URI改写
+	 * @access public
+	 * @param string $domain
+	 * @param array $uriRewriteRules
+	 * @return array
+	 */
+	public function setBackoriginUriRewrite(string $domain, array $uriRewriteRules = [])
+    {
+        // 获取响应
+        try{
+            // 查询域名是否存在在途工单
+            $response = $this->handler->domainIsExistOnwayOrder($domain);
+            // 如果返回失败
+            if($response['code'] != 100000){
+                // 返回错误
+                return [null, new \Exception($response['message'], $response['code'])];
+            }
+            // 如果存在在途工单
+            if(true === $response['is_exist']){
+                // 返回错误
+                return [null, new \Exception('域名配置中, 请5分钟后再试')];
+            }
+            // 默认传空数据
+            $data = [
+                'backorigin_uri_rewrite' => [],
+            ];
+            // 回源URI改写配置
+            if(!empty($uriRewriteRules)){
+                // 当前时间
+                $requestTime = time();
+                // 遍历
+                foreach($uriRewriteRules as $key => $item){
+                    // 如果不是数组
+                    if(!is_array($item)){
+                        continue;
+                    }
+                    // 如果未指定pattern
+                    if(!isset($item['pattern'])){
+                        continue;
+                    }
+                    // 指定ID
+                    $item['id'] = $requestTime . $key . mt_rand(1000, 9999);
+                    // 赋值到回源URI改写规则
+                    $data['backorigin_uri_rewrite'][] = $item;
+                }
+            }
             // 开始更新
             $response = $this->handler->domainIncreUpdate($domain, $data);
             // 如果返回成功
