@@ -262,7 +262,7 @@ class Ctyun extends Platform
         $domainFormatResult = \think\cdnclient\utils\DomainFormator::format($domain);
         // 如果失败
         if(is_null($domainFormatResult[0])){
-            return $domainFormatResult[1];
+            return $domainFormatResult;
         }
 
         // 获取主域名

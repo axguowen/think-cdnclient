@@ -17,6 +17,7 @@ class DomainFormator
     const SUFFIX_VALID = [
         'com.cn',
         'net.cn',
+        'hn.cn',
         'com',
         'net',
         'cn',
@@ -50,6 +51,10 @@ class DomainFormator
         'group',
         'in',
         'live',
+        'fun',
+        'xin',
+        'life',
+        'help',
     ];
 
     /**
